@@ -482,5 +482,8 @@ if __name__ == '__main__':
     os.makedirs('templates', exist_ok=True)
     os.makedirs('static', exist_ok=True)
 
-    logger.info("Starting Scanner Platform on http://localhost:5000")
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    # Get port from environment variable (Railway sets this)
+    port = int(os.environ.get("PORT", 5000))
+
+    logger.info(f"Starting Scanner Platform on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=False)
