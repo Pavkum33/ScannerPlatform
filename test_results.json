@@ -1,0 +1,50 @@
+{
+  "results": [
+    {
+      "symbol": "RELIANCE",
+      "timeframe": "1D",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-08-19",
+        "open": 1390.0,
+        "high": 1421.0,
+        "low": 1389.1,
+        "close": 1420.1,
+        "volume": 14384719.0,
+        "body_pct_of_range": 94.36,
+        "body_move_pct": 2.17
+      },
+      "doji": {
+        "date": "2025-08-20",
+        "open": 1413.0,
+        "high": 1424.9,
+        "low": 1410.0,
+        "close": 1413.0,
+        "volume": 8725641.0,
+        "body_pct_of_range": 0.0
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 3.9,
+      "rejection_strength": 79.87,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 30 1D",
+      "scan_timestamp": "2025-09-18T14:35:41.072761"
+    }
+  ],
+  "statistics": {
+    "total_symbols_requested": 3,
+    "symbols_scanned": 3,
+    "symbols_with_data": 3,
+    "symbols_with_patterns": 1,
+    "total_patterns_found": 1,
+    "scan_duration_seconds": 5.89,
+    "scan_timestamp": "2025-09-18T14:35:41.075538",
+    "parameters": {
+      "timeframe": "1D",
+      "history": 30,
+      "min_body_move_pct": 2.0,
+      "marubozu_threshold": 80.0,
+      "doji_threshold": 25.0
+    }
+  }
+}

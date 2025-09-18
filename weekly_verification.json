@@ -1,0 +1,348 @@
+{
+  "backend_results": [
+    {
+      "symbol": "TCS",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-04-25",
+        "open": 3290.1,
+        "high": 3477.8,
+        "low": 3284.1,
+        "close": 3448.0,
+        "volume": 13682533.0,
+        "body_pct_of_range": 81.52,
+        "body_move_pct": 4.8
+      },
+      "doji": {
+        "date": "2025-05-02",
+        "open": 3435.0,
+        "high": 3509.9,
+        "low": 3366.0,
+        "close": 3444.7,
+        "volume": 8096584.0,
+        "body_pct_of_range": 6.74
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 32.1,
+      "rejection_strength": 45.31,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:27.547334"
+    },
+    {
+      "symbol": "ICICIBANK",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2024-10-18",
+        "open": 1221.0,
+        "high": 1268.9,
+        "low": 1217.4,
+        "close": 1264.5,
+        "volume": 50838617.0,
+        "body_pct_of_range": 84.47,
+        "body_move_pct": 3.56
+      },
+      "doji": {
+        "date": "2024-10-25",
+        "open": 1264.5,
+        "high": 1284.9,
+        "low": 1234.2,
+        "close": 1255.45,
+        "volume": 67658109.0,
+        "body_pct_of_range": 17.85
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 16.0,
+      "rejection_strength": 58.09,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:27.852103"
+    },
+    {
+      "symbol": "ICICIBANK",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-05-16",
+        "open": 1409.4,
+        "high": 1458.7,
+        "low": 1404.0,
+        "close": 1454.0,
+        "volume": 55076178.0,
+        "body_pct_of_range": 81.54,
+        "body_move_pct": 3.16
+      },
+      "doji": {
+        "date": "2025-05-23",
+        "open": 1446.5,
+        "high": 1459.7,
+        "low": 1427.8,
+        "close": 1449.8,
+        "volume": 35317816.0,
+        "body_pct_of_range": 10.34
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 1.0,
+      "rejection_strength": 31.03,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:27.852239"
+    },
+    {
+      "symbol": "HINDUNILVR",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-07-11",
+        "open": 2341.0,
+        "high": 2530.0,
+        "low": 2341.0,
+        "close": 2519.6,
+        "volume": 14210249.0,
+        "body_pct_of_range": 94.5,
+        "body_move_pct": 7.63
+      },
+      "doji": {
+        "date": "2025-07-18",
+        "open": 2500.0,
+        "high": 2532.5,
+        "low": 2481.5,
+        "close": 2489.6,
+        "volume": 5706592.0,
+        "body_pct_of_range": 20.39
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 2.5,
+      "rejection_strength": 84.12,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:28.132771"
+    },
+    {
+      "symbol": "GRASIM",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-04-17",
+        "open": 2675.0,
+        "high": 2772.0,
+        "low": 2670.0,
+        "close": 2760.7,
+        "volume": 2338570.0,
+        "body_pct_of_range": 84.02,
+        "body_move_pct": 3.2
+      },
+      "doji": {
+        "date": "2025-04-25",
+        "open": 2755.0,
+        "high": 2787.3,
+        "low": 2673.0,
+        "close": 2734.8,
+        "volume": 2349311.0,
+        "body_pct_of_range": 17.67
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 15.3,
+      "rejection_strength": 45.93,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:28.515297"
+    },
+    {
+      "symbol": "EICHERMOT",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-06-27",
+        "open": 5495.0,
+        "high": 5685.0,
+        "low": 5479.5,
+        "close": 5660.0,
+        "volume": 2477984.0,
+        "body_pct_of_range": 80.29,
+        "body_move_pct": 3.0
+      },
+      "doji": {
+        "date": "2025-07-04",
+        "open": 5660.0,
+        "high": 5774.5,
+        "low": 5613.0,
+        "close": 5629.0,
+        "volume": 1694544.0,
+        "body_pct_of_range": 19.2
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 89.5,
+      "rejection_strength": 90.09,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:28.869220"
+    },
+    {
+      "symbol": "CUMMINSIND",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-07-11",
+        "open": 3350.4,
+        "high": 3569.0,
+        "low": 3330.3,
+        "close": 3546.4,
+        "volume": 3422544.0,
+        "body_pct_of_range": 82.11,
+        "body_move_pct": 5.85
+      },
+      "doji": {
+        "date": "2025-07-18",
+        "open": 3567.0,
+        "high": 3605.0,
+        "low": 3465.0,
+        "close": 3536.0,
+        "volume": 2152415.0,
+        "body_pct_of_range": 22.14
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 36.0,
+      "rejection_strength": 49.29,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:29.134977"
+    },
+    {
+      "symbol": "INDIGO",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-02-21",
+        "open": 4176.0,
+        "high": 4545.0,
+        "low": 4157.85,
+        "close": 4510.75,
+        "volume": 2893241.0,
+        "body_pct_of_range": 86.47,
+        "body_move_pct": 8.02
+      },
+      "doji": {
+        "date": "2025-02-28",
+        "open": 4502.0,
+        "high": 4574.0,
+        "low": 4403.3,
+        "close": 4477.3,
+        "volume": 4004778.0,
+        "body_pct_of_range": 14.47
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 29.0,
+      "rejection_strength": 56.65,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:29.486161"
+    },
+    {
+      "symbol": "CANFINHOME",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-03-21",
+        "open": 603.0,
+        "high": 681.9,
+        "low": 600.0,
+        "close": 675.65,
+        "volume": 2225910.0,
+        "body_pct_of_range": 88.71,
+        "body_move_pct": 12.05
+      },
+      "doji": {
+        "date": "2025-03-28",
+        "open": 675.65,
+        "high": 696.75,
+        "low": 661.85,
+        "close": 669.45,
+        "volume": 1351734.0,
+        "body_pct_of_range": 17.77
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 14.85,
+      "rejection_strength": 78.22,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:29.819361"
+    },
+    {
+      "symbol": "CANFINHOME",
+      "timeframe": "1W",
+      "pattern_direction": "bullish",
+      "marubozu": {
+        "date": "2025-05-30",
+        "open": 743.8,
+        "high": 790.8,
+        "low": 742.1,
+        "close": 788.15,
+        "volume": 1274233.0,
+        "body_pct_of_range": 91.07,
+        "body_move_pct": 5.96
+      },
+      "doji": {
+        "date": "2025-06-06",
+        "open": 788.2,
+        "high": 801.9,
+        "low": 773.0,
+        "close": 782.55,
+        "volume": 1185495.0,
+        "body_pct_of_range": 19.55
+      },
+      "notes": "Doji high broke Marubozu high but closed inside Marubozu body",
+      "breakout_amount": 11.1,
+      "rejection_strength": 66.96,
+      "source": "DHANHQ_v2",
+      "data_range_used": "last 60 1W",
+      "scan_timestamp": "2025-09-18T15:00:29.819436"
+    }
+  ],
+  "ui_results": {
+    "TCS": {
+      "date": "2025-05-02",
+      "move": 4.8
+    },
+    "ICICIBANK": {
+      "date": "2025-05-23",
+      "move": 3.16
+    },
+    "HINDUNILVR": {
+      "date": "2025-07-18",
+      "move": 7.63
+    },
+    "GRASIM": {
+      "date": "2025-04-25",
+      "move": 3.2
+    },
+    "EICHERMOT": {
+      "date": "2025-07-04",
+      "move": 3.0
+    },
+    "CUMMINSIND": {
+      "date": "2025-07-18",
+      "move": 5.85
+    },
+    "INDIGO": {
+      "date": "2025-02-28",
+      "move": 8.02
+    },
+    "CANFINHOME": [
+      {
+        "date": "2025-03-28",
+        "move": 12.05
+      },
+      {
+        "date": "2025-06-06",
+        "move": 5.96
+      }
+    ]
+  },
+  "analysis": {
+    "total_backend_patterns": 10,
+    "symbols_with_patterns": 8
+  }
+}

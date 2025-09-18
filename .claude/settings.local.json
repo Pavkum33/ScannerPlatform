@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Read(//c/Users/user/Pictures/Screenshots/**)",
+      "Bash(curl:*)",
+      "Bash(psql:*)",
+      "Bash(start http://localhost:5000)",
+      "WebFetch(domain:api.dhan.co)",
+      "Bash(dir)",
+      "Bash(findstr:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
