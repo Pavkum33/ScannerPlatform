@@ -1,0 +1,29 @@
+# Render Cron Job configuration for daily updates
+# This file defines scheduled tasks that run on Render
+
+services:
+  # Web service (main application)
+  - type: web
+    name: scanner-platform
+    runtime: python
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    autoDeploy: true
+    healthCheckPath: /
+    numInstances: 1
+    plan: free
+
+  # Cron job for daily EOD updates
+  - type: cron
+    name: daily-eod-update
+    runtime: python
+    schedule: "0 11 * * *"  # Runs at 11:00 UTC (4:30 PM IST)
+    buildCommand: pip install -r requirements.txt
+    command: cd database && python daily_eod_update.py --now
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    plan: free
