@@ -22,17 +22,9 @@ if [ ! -f database/pattern_scanner.db ]; then
 
     cd database
 
-    # Run database setup
-    echo "1. Setting up database schema and F&O symbols..."
-    python sqlite_setup.py
-
-    # Load initial historical data (last 30 days)
-    echo "2. Loading initial historical data..."
-    python run_setup.py
-
-    # Generate weekly/monthly aggregations
-    echo "3. Generating weekly/monthly patterns..."
-    python generate_aggregations.py
+    # Run comprehensive database initialization for Render
+    echo "Running Render database initialization with patterns..."
+    python render_db_init.py
 
     cd ..
     echo "==================================="
