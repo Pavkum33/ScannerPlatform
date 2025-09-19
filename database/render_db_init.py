@@ -401,16 +401,19 @@ def detect_all_patterns_from_db(db):
                 if body1_pct >= 80 and body1_move_pct >= 2:
                     # Check for Doji (body < 25% of range)
                     if body2_pct < 25:
-                        # Check breakout and rejection
-                        if candle2['high'] > candle1['high']:
-                            is_bullish = candle1['close'] > candle1['open']
+                        # Check breakout and rejection based on Marubozu direction
+                        is_bullish = candle1['close'] > candle1['open']
 
-                            if is_bullish:
-                                closed_inside = candle1['open'] < candle2['close'] < candle1['close']
-                            else:
-                                closed_inside = candle1['close'] < candle2['close'] < candle1['open']
+                        if is_bullish:
+                            # For bullish: Doji high must break above Marubozu high
+                            breakout_ok = candle2['high'] > candle1['high']
+                            closed_inside = candle1['open'] < candle2['close'] < candle1['close']
+                        else:
+                            # For bearish: Doji low must break below Marubozu low
+                            breakout_ok = candle2['low'] < candle1['low']
+                            closed_inside = candle1['close'] < candle2['close'] < candle1['open']
 
-                            if closed_inside:
+                        if breakout_ok and closed_inside:
                                 pattern_data = {
                                     'symbol': symbol_name,
                                     'timeframe': '1D',
@@ -489,15 +492,19 @@ def detect_all_patterns_from_db(db):
 
                     if body1_pct >= 80 and body1_move_pct >= 2:
                         if body2_pct < 25:
-                            if candle2['high'] > candle1['high']:
-                                is_bullish = candle1['close'] > candle1['open']
+                            # Check breakout and rejection based on Marubozu direction
+                            is_bullish = candle1['close'] > candle1['open']
 
-                                if is_bullish:
-                                    closed_inside = candle1['open'] < candle2['close'] < candle1['close']
-                                else:
-                                    closed_inside = candle1['close'] < candle2['close'] < candle1['open']
+                            if is_bullish:
+                                # For bullish: Doji high must break above Marubozu high
+                                breakout_ok = candle2['high'] > candle1['high']
+                                closed_inside = candle1['open'] < candle2['close'] < candle1['close']
+                            else:
+                                # For bearish: Doji low must break below Marubozu low
+                                breakout_ok = candle2['low'] < candle1['low']
+                                closed_inside = candle1['close'] < candle2['close'] < candle1['open']
 
-                                if closed_inside:
+                            if breakout_ok and closed_inside:
                                     pattern_data = {
                                         'symbol': symbol_name,
                                         'timeframe': timeframe,

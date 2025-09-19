@@ -145,17 +145,20 @@ class PatternDetector:
         if not doji_ok:
             return False, {}
 
-        # Check if Doji high breaks Marubozu high
-        if c2.high <= c1.high:
-            logger.debug(f"Pattern failed: Doji high {c2.high} doesn't break Marubozu high {c1.high}")
-            return False, {}
-
-        # Check if Doji closes inside Marubozu body
+        # Check breakout direction based on Marubozu type
         if c1.is_bullish:  # Bullish Marubozu
+            # For bullish: Doji high must break above Marubozu high
+            if c2.high <= c1.high:
+                logger.debug(f"Pattern failed: Doji high {c2.high} doesn't break Marubozu high {c1.high}")
+                return False, {}
             # For bullish: open1 < close2 < close1
             closes_inside = c1.open < c2.close < c1.close
             direction = 'bullish'
         else:  # Bearish Marubozu
+            # For bearish: Doji low must break below Marubozu low
+            if c2.low >= c1.low:
+                logger.debug(f"Pattern failed: Doji low {c2.low} doesn't break Marubozu low {c1.low}")
+                return False, {}
             # For bearish: close1 < close2 < open1
             closes_inside = c1.close < c2.close < c1.open
             direction = 'bearish'
