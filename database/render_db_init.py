@@ -12,6 +12,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 import time
+import gc  # Garbage collection for memory management
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -77,7 +78,7 @@ def initialize_render_database():
         error_count = 0
         failed_symbols = []
 
-        # Process in small batches
+        # Process in small batches with memory management
         batch_size = 3
         total_batches = (len(valid_symbols) + batch_size - 1) // batch_size
 
@@ -135,6 +136,10 @@ def initialize_render_database():
                         data_fetched = True
                         logger.info(f"  SUCCESS: {symbol} - {len(records)} days stored")
 
+                        # Memory cleanup
+                        del df, records
+                        gc.collect()
+
                     except Exception as e:
                         retry_count += 1
                         logger.error(f"  ERROR {symbol}: {e}")
@@ -146,8 +151,10 @@ def initialize_render_database():
                 # Delay between symbols
                 time.sleep(2)
 
-            # Delay between batches
+            # Memory cleanup and delay between batches
             if batch_idx < total_batches - 1:
+                logger.info("Memory cleanup between batches...")
+                gc.collect()  # Force garbage collection
                 logger.info("Waiting 10 seconds before next batch...")
                 time.sleep(10)
 
@@ -224,10 +231,14 @@ def generate_aggregations_from_db(db):
 
         aggregated_records = []
 
-        # Process each symbol
-        for symbol_id in daily_df['symbol_id'].unique():
+        # Process each symbol individually for memory efficiency
+        symbol_ids = daily_df['symbol_id'].unique()
+        for idx, symbol_id in enumerate(symbol_ids):
             symbol_data = daily_df[daily_df['symbol_id'] == symbol_id].copy()
             symbol_data = symbol_data.sort_values('date')
+
+            if idx % 10 == 0:  # Log progress every 10 symbols
+                logger.info(f"Processing aggregations for symbol {idx + 1}/{len(symbol_ids)}")
 
             # Weekly aggregation (ISO week)
             symbol_data['week'] = symbol_data['date'].dt.to_period('W')
@@ -290,6 +301,11 @@ def generate_aggregations_from_db(db):
                     'volume': int(row['volume']) if pd.notna(row['volume']) else 0,
                     'trading_days': int(trading_days)
                 })
+
+            # Memory cleanup after processing each symbol
+            del symbol_data, weekly, monthly
+            if idx % 20 == 0:  # Force garbage collection every 20 symbols
+                gc.collect()
 
         # Insert all aggregated records
         if aggregated_records:
