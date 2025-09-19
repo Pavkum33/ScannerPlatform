@@ -506,6 +506,59 @@ def get_scanners():
     ]
     return jsonify(scanners)
 
+@app.route('/api/database/init', methods=['POST'])
+def init_database():
+    """Manual database initialization endpoint for Render deployment"""
+    try:
+        import subprocess
+        import os
+
+        logger.info("Starting manual database initialization...")
+
+        # Change to database directory
+        db_dir = os.path.join(os.path.dirname(__file__), 'database')
+
+        # Run the render database initialization script
+        result = subprocess.run(
+            ['python', 'render_db_init.py'],
+            cwd=db_dir,
+            capture_output=True,
+            text=True,
+            timeout=600  # 10 minute timeout
+        )
+
+        if result.returncode == 0:
+            logger.info("Database initialization completed successfully")
+            return jsonify({
+                "success": True,
+                "message": "Database initialized successfully",
+                "output": result.stdout,
+                "errors": result.stderr if result.stderr else None
+            })
+        else:
+            logger.error(f"Database initialization failed: {result.stderr}")
+            return jsonify({
+                "success": False,
+                "message": "Database initialization failed",
+                "output": result.stdout,
+                "errors": result.stderr
+            }), 500
+
+    except subprocess.TimeoutExpired:
+        logger.error("Database initialization timed out")
+        return jsonify({
+            "success": False,
+            "message": "Database initialization timed out (>10 minutes)",
+            "errors": "Process exceeded timeout limit"
+        }), 500
+    except Exception as e:
+        logger.error(f"Database initialization error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": f"Database initialization error: {str(e)}",
+            "errors": str(e)
+        }), 500
+
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist
     os.makedirs('templates', exist_ok=True)
