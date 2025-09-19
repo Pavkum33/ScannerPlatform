@@ -249,62 +249,91 @@ def get_database_patterns():
     """Get patterns from database for all timeframes"""
     import sqlite3
 
-    conn = sqlite3.connect('database/pattern_scanner.db')
-    cursor = conn.cursor()
+    print("DEBUG: get_database_patterns called!")  # This should ALWAYS print
+    try:
+        conn = sqlite3.connect('database/pattern_scanner.db')
+        cursor = conn.cursor()
 
-    # Get patterns for all timeframes
-    cursor.execute("""
-        SELECT dp.*, s.symbol, pt.pattern_name
-        FROM detected_patterns dp
-        JOIN symbols s ON dp.symbol_id = s.symbol_id
-        JOIN pattern_types pt ON dp.pattern_type_id = pt.pattern_type_id
-        ORDER BY dp.timeframe, dp.pattern_date DESC
-    """)
+        # Get patterns directly - the symbol name is already in pattern_data JSON
+        cursor.execute("""
+            SELECT
+                dp.pattern_id,
+                dp.symbol_id,
+                dp.pattern_type_id,
+                dp.pattern_date,
+                dp.timeframe,
+                dp.pattern_direction,
+                dp.pattern_data,
+                dp.confidence_score
+            FROM detected_patterns dp
+            ORDER BY dp.timeframe, dp.pattern_date DESC
+        """)
 
-    patterns = cursor.fetchall()
+        patterns = cursor.fetchall()
 
-    # Format results by timeframe
-    results_by_timeframe = {
-        '1D': [],
-        'WEEKLY': [],
-        'MONTHLY': []
-    }
+        print(f"DEBUG: Found {len(patterns)} patterns in database")  # Print for immediate output
+        logger.info(f"Found {len(patterns)} patterns in database")
 
-    for pattern in patterns:
-        pattern_data = pattern[7]  # pattern_data column
+        # Format results by timeframe
+        results_by_timeframe = {
+            '1D': [],
+            'WEEKLY': [],
+            'MONTHLY': []
+        }
 
-        # Parse the pattern_data string to dict
-        try:
-            if pattern_data:
-                # Try JSON first, fallback to ast.literal_eval for old data
-                try:
-                    pattern_dict = json.loads(pattern_data)
-                except:
-                    import ast
-                    pattern_dict = ast.literal_eval(pattern_data)
+        for pattern in patterns:
+            timeframe = pattern[4]  # timeframe column (index 4)
+            pattern_data_str = pattern[6]  # pattern_data column (index 6)
 
-                # Add to appropriate timeframe
-                timeframe = pattern[3]  # timeframe column
-                if timeframe in results_by_timeframe:
-                    results_by_timeframe[timeframe].append(pattern_dict)
-        except:
-            continue
+            # Parse the pattern_data string to dict
+            try:
+                if pattern_data_str:
+                    # Try JSON first
+                    try:
+                        pattern_dict = json.loads(pattern_data_str)
+                    except json.JSONDecodeError:
+                        import ast
+                        pattern_dict = ast.literal_eval(pattern_data_str)
 
-    # Count patterns by timeframe
-    statistics = {
-        'daily_patterns': len(results_by_timeframe['1D']),
-        'weekly_patterns': len(results_by_timeframe['WEEKLY']),
-        'monthly_patterns': len(results_by_timeframe['MONTHLY']),
-        'total_patterns': len(patterns),
-        'timestamp': datetime.now().isoformat()
-    }
+                    # Add to appropriate timeframe
+                    if timeframe in results_by_timeframe:
+                        results_by_timeframe[timeframe].append(pattern_dict)
+                    else:
+                        logger.warning(f"Unknown timeframe: {timeframe}")
+            except Exception as e:
+                logger.error(f"Error parsing pattern data: {e}")
+                continue
 
-    conn.close()
+        # Count patterns by timeframe
+        statistics = {
+            'daily_patterns': len(results_by_timeframe['1D']),
+            'weekly_patterns': len(results_by_timeframe['WEEKLY']),
+            'monthly_patterns': len(results_by_timeframe['MONTHLY']),
+            'total_patterns': len(patterns),
+            'timestamp': datetime.now().isoformat()
+        }
 
-    return jsonify({
-        'results': results_by_timeframe,
-        'statistics': statistics
-    })
+        conn.close()
+
+        return jsonify({
+            'results': results_by_timeframe,
+            'statistics': statistics
+        })
+
+    except Exception as e:
+        logger.error(f"Database error in get_database_patterns: {e}")
+        print(f"ERROR in get_database_patterns: {e}")
+        return jsonify({
+            'results': {'1D': [], 'WEEKLY': [], 'MONTHLY': []},
+            'statistics': {
+                'daily_patterns': 0,
+                'weekly_patterns': 0,
+                'monthly_patterns': 0,
+                'total_patterns': 0,
+                'timestamp': datetime.now().isoformat(),
+                'error': str(e)
+            }
+        })
 
 @app.route('/api/results/today')
 def get_todays_signals():
