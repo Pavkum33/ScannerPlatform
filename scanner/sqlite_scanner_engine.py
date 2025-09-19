@@ -30,14 +30,18 @@ class SQLiteScannerEngine:
     def __init__(self, db_path: str = "database/pattern_scanner.db"):
         """Initialize SQLite scanner"""
         self.db = SQLiteDBManager(db_path)
-        self.dhan = None  # Only initialize if needed for updates
-        logger.info("SQLite Scanner Engine initialized")
+        # Always initialize DHAN client for live data fetching
+        self.dhan = DhanClient()
+        # Pre-load and cache symbol-to-security-ID mappings (constant data)
+        logger.info("Loading symbol-to-security-ID mappings...")
+        self.symbol_mapping = self.dhan.load_equity_instruments()
+        logger.info(f"Cached {len(self.symbol_mapping)} symbol mappings for fast lookup")
+        logger.info("SQLite Scanner Engine initialized with live API support")
 
     def scan(self, symbols: List[str], timeframe: str = "1D",
             history: int = 30, min_body_move_pct: float = 4.0) -> Dict:
         """
-        Scan for patterns using database
-        EXACT SAME INTERFACE as original scanner
+        Live scan using DHAN API with multi-timeframe support and retries
 
         Args:
             symbols: List of symbols to scan
@@ -46,84 +50,153 @@ class SQLiteScannerEngine:
             min_body_move_pct: Minimum body movement % for Marubozu
 
         Returns:
-            Dict with results in SAME FORMAT as original
+            Dict with results including ALL timeframes when requested
         """
-        logger.info(f"Starting SQLite scan: {len(symbols)} symbols")
+        logger.info(f"Starting LIVE DHAN API scan: {len(symbols)} symbols, timeframe: {timeframe}")
         start_time = datetime.now()
 
-        results = []
-        successful_symbols = 0
-        failed_symbols = []
-        skipped_no_data = []
+        # Determine which timeframes to scan
+        if timeframe == "ALL":
+            timeframes_to_scan = ["1D", "1W", "1M"]
+        else:
+            timeframes_to_scan = [timeframe]
 
-        # Calculate date range
-        end_date = datetime.now().date()
-        if timeframe == "1D":
-            start_date = end_date - timedelta(days=history)
-        elif timeframe == "1W":
-            start_date = end_date - timedelta(weeks=history)
-        else:  # 1M
-            start_date = end_date - timedelta(days=history * 30)
+        all_results = []
+        total_successful = 0
+        total_failed = []
+        total_skipped = []
 
-        for symbol in symbols:
-            try:
-                # Get data from database (INSTANT!)
-                df = self.db.get_ohlc_data(symbol, start_date, end_date, timeframe)
+        # Scan each timeframe
+        for tf in timeframes_to_scan:
+            logger.info(f"Scanning {tf} timeframe...")
 
-                if df.empty or len(df) < 2:
-                    skipped_no_data.append(symbol)
-                    continue
+            tf_results = []
+            successful_symbols = 0
+            failed_symbols = []
+            skipped_no_data = []
 
-                # Convert date column to timestamp for compatibility
-                df['timestamp'] = pd.to_datetime(df['date'])
+            # Calculate history for this timeframe
+            if tf == "1D":
+                tf_history = history
+            elif tf == "1W":
+                tf_history = max(10, history // 7)  # At least 10 weeks
+            else:  # 1M
+                tf_history = max(6, history // 30)  # At least 6 months
 
-                # EXACT SAME PATTERN DETECTION AS ORIGINAL
-                patterns = self._detect_marubozu_doji_patterns(
-                    df, symbol, min_body_move_pct
-                )
+            for symbol in symbols:
+                try:
+                    # Always fetch Daily data first (DHAN API only provides Daily)
+                    daily_df = self._fetch_with_retries(symbol, "1D", max(tf_history * 7, 50))
 
-                if patterns:
-                    for pattern in patterns:
-                        pattern['symbol'] = symbol
-                        pattern['timeframe'] = timeframe
-                        results.append(pattern)
+                    if daily_df is None or daily_df.empty or len(daily_df) < 2:
+                        skipped_no_data.append(f"{symbol}({tf})")
+                        continue
 
-                        # Store in database
-                        self._store_pattern(pattern)
+                    # Aggregate Daily data to target timeframe using DhanClient aggregation methods
+                    if tf == "1D":
+                        df = daily_df
+                    elif tf == "1W":
+                        df = self.dhan._aggregate_to_weekly(daily_df)
+                    elif tf == "1M":
+                        df = self.dhan._aggregate_to_monthly(daily_df)
+                    else:
+                        df = daily_df
 
-                successful_symbols += 1
+                    if df is None or df.empty or len(df) < 2:
+                        skipped_no_data.append(f"{symbol}({tf})")
+                        continue
 
-            except Exception as e:
-                logger.error(f"Error scanning {symbol}: {e}")
-                failed_symbols.append(symbol)
+                    # Add timestamp column for pattern detection
+                    if 'timestamp' not in df.columns:
+                        df['timestamp'] = pd.to_datetime(df['date'])
+
+                    # Detect patterns on aggregated timeframe data
+                    patterns = self._detect_marubozu_doji_patterns(
+                        df, symbol, min_body_move_pct
+                    )
+
+                    if patterns:
+                        for pattern in patterns:
+                            pattern['symbol'] = symbol
+                            pattern['timeframe'] = tf
+                            tf_results.append(pattern)
+
+                    successful_symbols += 1
+
+                except Exception as e:
+                    logger.error(f"Error scanning {symbol}({tf}): {e}")
+                    failed_symbols.append(f"{symbol}({tf})")
+
+            # Add timeframe results to overall results
+            all_results.extend(tf_results)
+            total_successful += successful_symbols
+            total_failed.extend(failed_symbols)
+            total_skipped.extend(skipped_no_data)
+
+            logger.info(f"{tf} scan: {len(tf_results)} patterns, {successful_symbols} successful")
 
         # Calculate statistics
         elapsed = (datetime.now() - start_time).total_seconds()
 
         response = {
-            "results": results,
+            "results": all_results,
             "statistics": {
                 "symbols_scanned": len(symbols),
-                "successful_scans": successful_symbols,
-                "failed_scans": len(failed_symbols),
-                "skipped_no_data": len(skipped_no_data),
-                "patterns_found": len(results),
+                "timeframes_scanned": timeframes_to_scan,
+                "successful_scans": total_successful,
+                "failed_scans": len(total_failed),
+                "skipped_no_data": len(total_skipped),
+                "patterns_found": len(all_results),
                 "scan_duration_seconds": elapsed,
                 "scan_timestamp": datetime.now().isoformat(),
                 "timeframe": timeframe,
                 "history_periods": history,
                 "min_body_move_pct": min_body_move_pct,
-                "data_source": "SQLite Database",
+                "data_source": "LIVE DHAN API",
                 "avg_time_per_symbol": elapsed / len(symbols) if symbols else 0
             },
-            "failed_symbols": failed_symbols,
-            "skipped_symbols": skipped_no_data
+            "failed_symbols": total_failed,
+            "skipped_symbols": total_skipped
         }
 
-        logger.info(f"SQLite scan complete: {len(results)} patterns in {elapsed:.2f}s")
+        logger.info(f"LIVE scan complete: {len(all_results)} patterns in {elapsed:.2f}s")
         logger.info(f"Speed: {len(symbols)/elapsed:.1f} symbols/second")
 
         return response
+
+    def _fetch_with_retries(self, symbol: str, timeframe: str, history: int, max_retries: int = 5) -> pd.DataFrame:
+        """
+        Fetch data from DHAN API with retries and linear 2-second backoff
+        Uses cached symbol-to-security-ID mapping for fast lookup
+        """
+        import time
+
+        # Look up security ID from cached mapping (constant data)
+        security_id = self.symbol_mapping.get(symbol)
+        if not security_id:
+            logger.error(f"Security ID not found for symbol: {symbol}")
+            return None
+
+        for attempt in range(max_retries):
+            try:
+                # Use security ID (not symbol name) for DHAN API call
+                df = self.dhan.get_historical_data(security_id, history, timeframe)
+                if df is not None and not df.empty:
+                    return df
+                else:
+                    logger.warning(f"Empty data for {symbol}({timeframe}) on attempt {attempt + 1}")
+
+            except Exception as e:
+                logger.warning(f"API error for {symbol}({timeframe}) attempt {attempt + 1}: {e}")
+
+            # Linear 2-second backoff
+            if attempt < max_retries - 1:
+                sleep_time = 2
+                logger.info(f"Retrying {symbol}({timeframe}) in {sleep_time}s...")
+                time.sleep(sleep_time)
+
+        logger.error(f"Failed to fetch {symbol}({timeframe}) after {max_retries} attempts")
+        return None
 
     def _detect_marubozu_doji_patterns(self, df: pd.DataFrame, symbol: str,
                                       min_body_move_pct: float) -> List[Dict]:
@@ -238,63 +311,6 @@ class SQLiteScannerEngine:
 
         return patterns
 
-    def _aggregate_to_weekly(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        EXACT COPY from dhan_client.py - DO NOT MODIFY
-        Aggregate daily data to weekly using TradingView-style rules
-        """
-        df = df.copy()
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index('date').sort_index()
-
-        # ISO week aggregation
-        df['year'] = df.index.isocalendar().year
-        df['week'] = df.index.isocalendar().week
-        grouped = df.groupby(['year', 'week'])
-
-        rows = []
-        for (y, w), g in grouped:
-            g = g.sort_index()
-            row = {
-                'date': g.index[-1],  # Last trading day of week
-                'open': g.iloc[0]['open'],
-                'high': g['high'].max(),
-                'low': g['low'].min(),
-                'close': g.iloc[-1]['close'],
-                'volume': g['volume'].sum() if 'volume' in g.columns else 0
-            }
-            rows.append(row)
-
-        return pd.DataFrame(rows).sort_values('date').reset_index(drop=True)
-
-    def _aggregate_to_monthly(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        EXACT COPY from dhan_client.py - DO NOT MODIFY
-        Aggregate daily data to monthly using TradingView-style rules
-        """
-        df = df.copy()
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index('date').sort_index()
-
-        # Calendar month aggregation
-        df['year'] = df.index.year
-        df['month'] = df.index.month
-        grouped = df.groupby(['year', 'month'])
-
-        rows = []
-        for (y, m), g in grouped:
-            g = g.sort_index()
-            row = {
-                'date': g.index[-1],  # Last trading day of month
-                'open': g.iloc[0]['open'],
-                'high': g['high'].max(),
-                'low': g['low'].min(),
-                'close': g.iloc[-1]['close'],
-                'volume': g['volume'].sum() if 'volume' in g.columns else 0
-            }
-            rows.append(row)
-
-        return pd.DataFrame(rows).sort_values('date').reset_index(drop=True)
 
     def _store_pattern(self, pattern: Dict):
         """Store detected pattern in database"""

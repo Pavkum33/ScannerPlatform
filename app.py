@@ -192,7 +192,7 @@ def scan():
     data = request.json
 
     # Extract parameters
-    timeframe = data.get('timeframe', '1D')
+    timeframe = data.get('timeframe', '1D')  # Now supports: 1D, 1W, 1M, ALL
     min_body_move = float(data.get('min_body_move', 4))
     days_back = int(data.get('days_back', 30))
     symbol_group = data.get('symbol_group', 'fno')

@@ -38,8 +38,8 @@ def rate_limit(calls_per_second: int = 3):
     return decorator
 
 
-def retry_on_failure(retries: int = 3, delay: float = 1.0):
-    """Retry decorator with exponential backoff"""
+def retry_on_failure(retries: int = 3, delay: float = 2.0):
+    """Retry decorator with linear 2-second backoff"""
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -48,7 +48,7 @@ def retry_on_failure(retries: int = 3, delay: float = 1.0):
                     return func(*args, **kwargs)
                 except Exception as e:
                     if attempt < retries:
-                        wait = delay * attempt
+                        wait = delay
                         logger.warning(f"Retry {attempt}/{retries} for {func.__name__} due to {e}, waiting {wait}s")
                         time.sleep(wait)
                     else:

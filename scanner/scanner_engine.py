@@ -139,51 +139,129 @@ class ScannerEngine:
                     continue
 
                 # Pattern found and passes filters!
-                # Add week information for weekly patterns
-                marubozu_week_info = ''
-                doji_week_info = ''
+                # Format result based on timeframe to match database structure
+                if timeframe in ['1W', '1M']:
+                    # For weekly/monthly patterns, we need to provide period spans like database
+                    # Get the original DataFrame to find period start dates
+                    c1_row = df_agg.iloc[idx1]
+                    c2_row = df_agg.iloc[idx2]
 
-                if timeframe == '1W':
-                    # Add ISO week information
-                    c1_date = pd.to_datetime(c1.date)
-                    c2_date = pd.to_datetime(c2.date)
-                    c1_iso = c1_date.isocalendar()
-                    c2_iso = c2_date.isocalendar()
-                    marubozu_week_info = f" (Week {c1_iso.week})"
-                    doji_week_info = f" (Week {c2_iso.week})"
+                    if timeframe == '1W':
+                        # For weekly, calculate the week start for each candle
+                        c1_date = pd.to_datetime(c1.date)
+                        c2_date = pd.to_datetime(c2.date)
 
-                result = {
-                    'symbol': symbol,
-                    'timeframe': timeframe,
-                    'pattern_direction': details.get('direction'),
-                    'marubozu': {
-                        'date': str(c1.date),
-                        'week_info': marubozu_week_info.strip(),
-                        'open': c1.open,
-                        'high': c1.high,
-                        'low': c1.low,
-                        'close': c1.close,
-                        'volume': c1.volume,
-                        'body_pct_of_range': details.get('marubozu_body_pct'),
-                        'body_move_pct': details.get('marubozu_body_move_pct')
-                    },
-                    'doji': {
-                        'date': str(c2.date),
-                        'week_info': doji_week_info.strip(),
-                        'open': c2.open,
-                        'high': c2.high,
-                        'low': c2.low,
-                        'close': c2.close,
-                        'volume': c2.volume,
-                        'body_pct_of_range': details.get('doji_body_pct')
-                    },
+                        # Calculate Monday of each week (ISO week start)
+                        c1_monday = c1_date - pd.Timedelta(days=c1_date.weekday())
+                        c2_monday = c2_date - pd.Timedelta(days=c2_date.weekday())
+
+                        marubozu_period_start = c1_monday.strftime('%Y-%m-%d')
+                        marubozu_period_end = str(c1.date)
+                        doji_period_start = c2_monday.strftime('%Y-%m-%d')
+                        doji_period_end = str(c2.date)
+
+                        result = {
+                            'symbol': symbol,
+                            'timeframe': timeframe,
+                            'pattern_direction': details.get('direction'),
+                            'marubozu': {
+                                'period_start': marubozu_period_start,
+                                'period_end': marubozu_period_end,
+                                'open': c1.open,
+                                'high': c1.high,
+                                'low': c1.low,
+                                'close': c1.close,
+                                'volume': c1.volume,
+                                'body_pct': round(details.get('marubozu_body_pct'), 2),
+                                'body_move_pct': round(details.get('marubozu_body_move_pct'), 2)
+                            },
+                            'doji': {
+                                'period_start': doji_period_start,
+                                'period_end': doji_period_end,
+                                'open': c2.open,
+                                'high': c2.high,
+                                'low': c2.low,
+                                'close': c2.close,
+                                'volume': c2.volume,
+                                'body_pct': round(details.get('doji_body_pct'), 2)
+                            },
+                        }
+                    elif timeframe == '1M':
+                        # For monthly, calculate month start for each candle
+                        c1_date = pd.to_datetime(c1.date)
+                        c2_date = pd.to_datetime(c2.date)
+
+                        # First day of each month
+                        c1_month_start = c1_date.replace(day=1)
+                        c2_month_start = c2_date.replace(day=1)
+
+                        marubozu_period_start = c1_month_start.strftime('%Y-%m-%d')
+                        marubozu_period_end = str(c1.date)
+                        doji_period_start = c2_month_start.strftime('%Y-%m-%d')
+                        doji_period_end = str(c2.date)
+
+                        result = {
+                            'symbol': symbol,
+                            'timeframe': timeframe,
+                            'pattern_direction': details.get('direction'),
+                            'marubozu': {
+                                'period_start': marubozu_period_start,
+                                'period_end': marubozu_period_end,
+                                'open': c1.open,
+                                'high': c1.high,
+                                'low': c1.low,
+                                'close': c1.close,
+                                'volume': c1.volume,
+                                'body_pct': round(details.get('marubozu_body_pct'), 2),
+                                'body_move_pct': round(details.get('marubozu_body_move_pct'), 2)
+                            },
+                            'doji': {
+                                'period_start': doji_period_start,
+                                'period_end': doji_period_end,
+                                'open': c2.open,
+                                'high': c2.high,
+                                'low': c2.low,
+                                'close': c2.close,
+                                'volume': c2.volume,
+                                'body_pct': round(details.get('doji_body_pct'), 2)
+                            },
+                        }
+                else:
+                    # For daily patterns, keep existing format
+                    result = {
+                        'symbol': symbol,
+                        'timeframe': timeframe,
+                        'pattern_direction': details.get('direction'),
+                        'marubozu': {
+                            'date': str(c1.date),
+                            'open': c1.open,
+                            'high': c1.high,
+                            'low': c1.low,
+                            'close': c1.close,
+                            'volume': c1.volume,
+                            'body_pct_of_range': details.get('marubozu_body_pct'),
+                            'body_move_pct': details.get('marubozu_body_move_pct')
+                        },
+                        'doji': {
+                            'date': str(c2.date),
+                            'open': c2.open,
+                            'high': c2.high,
+                            'low': c2.low,
+                            'close': c2.close,
+                            'volume': c2.volume,
+                            'body_pct_of_range': details.get('doji_body_pct')
+                        },
+                    }
+
+                # Add common properties for all timeframes
+                result.update({
                     'notes': 'Doji high broke Marubozu high but closed inside Marubozu body',
                     'breakout_amount': details.get('breakout_amount'),
                     'rejection_strength': details.get('rejection_strength'),
                     'source': 'DHANHQ_v2',
                     'data_range_used': f'last {history} {timeframe}',
                     'scan_timestamp': datetime.now().isoformat()
-                }
+                })
 
                 results.append(result)
                 logger.info(f"✅ Pattern found: {symbol} {timeframe} {details.get('direction')} "

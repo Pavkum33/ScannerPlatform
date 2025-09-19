@@ -3,260 +3,499 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Platform - Professional Trading Analytics</title>
+    <title>Pattern Scanner Pro - Advanced Trading Analytics Platform</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@latest/dist/apexcharts.css">
 </head>
-<body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <i class="fas fa-chart-line"></i>
-                <div class="logo-text">
-                    <h2>Scanner Platform</h2>
-                    <p>Professional Trading Analytics</p>
+<body data-theme="light">
+    <!-- Top Bar -->
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="market-status">
+                <span class="market-indicator" id="marketIndicator"></span>
+                <span class="market-text" id="marketStatus">Market Closed</span>
+                <span class="market-time" id="marketTime"></span>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <div class="notifications">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationCount">0</span>
+                </button>
+            </div>
+            <div class="user-menu">
+                <img src="https://ui-avatars.com/api/?name=Trader&background=7c3aed&color=fff" alt="User" class="user-avatar">
+                <span class="user-name">Pro Trader</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-wrapper">
+        <!-- Enhanced Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="logo-info">
+                        <h2>Pattern Scanner</h2>
+                        <span class="version">Pro v2.0</span>
+                    </div>
                 </div>
             </div>
 
-            <nav class="nav-menu">
+            <nav class="sidebar-nav">
                 <div class="nav-section">
-                    <h3>MAIN</h3>
-                    <ul>
+                    <div class="nav-section-title">
+                        <span>MAIN MENU</span>
+                    </div>
+                    <ul class="nav-list">
                         <li class="nav-item active">
-                            <i class="fas fa-home"></i>
-                            <span>Dashboard</span>
+                            <a href="#" class="nav-link">
+                                <div class="nav-icon">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                </div>
+                                <span class="nav-text">Dashboard</span>
+                                <span class="nav-badge pulse">Live</span>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Market Overview</span>
-                            <span class="badge">Live</span>
+                            <a href="#" class="nav-link">
+                                <div class="nav-icon">
+                                    <i class="fas fa-chart-area"></i>
+                                </div>
+                                <span class="nav-text">Market Overview</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <div class="nav-icon">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <span class="nav-text">Scan History</span>
+                                <span class="nav-count">12</span>
+                            </a>
                         </li>
                     </ul>
                 </div>
 
                 <div class="nav-section">
-                    <h3>PATTERN SCANNERS</h3>
-                    <ul id="scanner-list">
+                    <div class="nav-section-title">
+                        <span>PATTERN SCANNERS</span>
+                    </div>
+                    <ul class="nav-list">
                         <li class="nav-item scanner-item active" data-scanner="marubozu_doji">
-                            <i class="fas fa-chart-candlestick"></i>
-                            <span>Marubozu + Doji</span>
-                            <span class="badge active">Active</span>
+                            <a href="#" class="nav-link">
+                                <div class="nav-icon">
+                                    <i class="fas fa-chart-candlestick"></i>
+                                </div>
+                                <span class="nav-text">Marubozu + Doji</span>
+                                <span class="nav-status active">Active</span>
+                            </a>
                         </li>
-                        <li class="nav-item scanner-item disabled" data-scanner="hammer_shooting">
-                            <i class="fas fa-hammer"></i>
-                            <span>Hammer & Shooting</span>
-                            <span class="badge soon">Soon</span>
+                        <li class="nav-item scanner-item disabled" data-scanner="hammer">
+                            <a href="#" class="nav-link">
+                                <div class="nav-icon">
+                                    <i class="fas fa-hammer"></i>
+                                </div>
+                                <span class="nav-text">Hammer Pattern</span>
+                                <span class="nav-status coming">Soon</span>
+                            </a>
                         </li>
                         <li class="nav-item scanner-item disabled" data-scanner="engulfing">
-                            <i class="fas fa-arrows-alt-h"></i>
-                            <span>Engulfing</span>
-                            <span class="badge soon">Soon</span>
-                        </li>
-                        <li class="nav-item scanner-item disabled" data-scanner="doji_variations">
-                            <i class="fas fa-star"></i>
-                            <span>Doji Variations</span>
-                            <span class="badge soon">Soon</span>
-                        </li>
-                        <li class="nav-item scanner-item disabled" data-scanner="three_patterns">
-                            <i class="fas fa-layer-group"></i>
-                            <span>Three Patterns</span>
-                            <span class="badge soon">Soon</span>
+                            <a href="#" class="nav-link">
+                                <div class="nav-icon">
+                                    <i class="fas fa-compress-arrows-alt"></i>
+                                </div>
+                                <span class="nav-text">Engulfing</span>
+                                <span class="nav-status coming">Soon</span>
+                            </a>
                         </li>
                     </ul>
                 </div>
 
                 <div class="nav-section">
-                    <h3>TOOLS</h3>
-                    <ul>
+                    <div class="nav-section-title">
+                        <span>SETTINGS</span>
+                    </div>
+                    <ul class="nav-list">
                         <li class="nav-item">
-                            <i class="fas fa-bell"></i>
-                            <span>Alerts</span>
-                            <span class="badge">0</span>
+                            <a href="#" class="nav-link">
+                                <div class="nav-icon">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <span class="nav-text">Preferences</span>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
+                            <a href="#" class="nav-link">
+                                <div class="nav-icon">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <span class="nav-text">Data Management</span>
+                            </a>
                         </li>
                     </ul>
                 </div>
             </nav>
 
             <div class="sidebar-footer">
-                <div class="connection-status">
-                    <span class="status-dot online"></span>
-                    <span>Connected to DHAN</span>
+                <div class="connection-card">
+                    <div class="connection-header">
+                        <span class="connection-dot online"></span>
+                        <span class="connection-text">DHAN API</span>
+                    </div>
+                    <div class="connection-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">158</span>
+                            <span class="stat-label">Symbols</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">3/s</span>
+                            <span class="stat-label">Rate</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content Area -->
         <main class="main-content">
-            <!-- Header -->
-            <header class="main-header">
-                <div class="header-title">
-                    <h1>Marubozu + Doji Scanner</h1>
-                    <p>Detect failed breakout patterns in real-time</p>
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <span class="title-icon">
+                            <i class="fas fa-chart-candlestick"></i>
+                        </span>
+                        Marubozu + Doji Scanner
+                    </h1>
+                    <p class="page-subtitle">Advanced pattern detection for failed breakout signals</p>
                 </div>
-                <div class="header-actions">
-                    <button class="btn btn-warning" onclick="runEODUpdate()" title="Update database with latest EOD data">
-                        <i class="fas fa-cloud-download-alt"></i> EOD Update
+                <div class="page-actions">
+                    <button class="action-btn secondary" onclick="runEODUpdate()">
+                        <i class="fas fa-cloud-download-alt"></i>
+                        <span>EOD Update</span>
                     </button>
-                    <button class="btn btn-secondary" onclick="refreshData()">
-                        <i class="fas fa-sync-alt"></i> Refresh
+                    <button class="action-btn secondary" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
                     </button>
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle">
-                            <i class="fas fa-download"></i> Export
+                    <div class="export-dropdown">
+                        <button class="action-btn secondary dropdown-trigger">
+                            <i class="fas fa-download"></i>
+                            <span>Export</span>
+                            <i class="fas fa-chevron-down"></i>
                         </button>
-                        <div class="dropdown-menu">
-                            <a href="#" onclick="exportResults('json')">Export as JSON</a>
-                            <a href="#" onclick="exportResults('csv')">Export as CSV</a>
-                            <a href="#" onclick="exportResults('excel')">Export as Excel</a>
+                        <div class="dropdown-content">
+                            <a href="#" onclick="exportResults('json')">
+                                <i class="fas fa-code"></i> Export as JSON
+                            </a>
+                            <a href="#" onclick="exportResults('csv')">
+                                <i class="fas fa-file-csv"></i> Export as CSV
+                            </a>
+                            <a href="#" onclick="exportResults('excel')">
+                                <i class="fas fa-file-excel"></i> Export as Excel
+                            </a>
                         </div>
                     </div>
                 </div>
-            </header>
+            </div>
+
+            <!-- Quick Stats Dashboard -->
+            <div class="stats-dashboard">
+                <div class="stat-card gradient-1">
+                    <div class="stat-card-body">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 class="stat-value" id="totalScans">0</h3>
+                            <p class="stat-label">Total Scans</p>
+                            <div class="stat-trend up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>12% from last</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-chart" id="scansChart"></div>
+                </div>
+
+                <div class="stat-card gradient-2">
+                    <div class="stat-card-body">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 class="stat-value" id="symbolsScanned">0</h3>
+                            <p class="stat-label">Symbols Scanned</p>
+                            <div class="stat-progress">
+                                <div class="progress-bar-mini">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-chart" id="symbolsChart"></div>
+                </div>
+
+                <div class="stat-card gradient-3">
+                    <div class="stat-card-body">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 class="stat-value" id="patternsFound">0</h3>
+                            <p class="stat-label">Patterns Found</p>
+                            <div class="stat-badges">
+                                <span class="mini-badge bullish">0 Bull</span>
+                                <span class="mini-badge bearish">0 Bear</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-chart" id="patternsChart"></div>
+                </div>
+
+                <div class="stat-card gradient-4">
+                    <div class="stat-card-body">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 class="stat-value" id="scanTime">0s</h3>
+                            <p class="stat-label">Scan Time</p>
+                            <div class="stat-indicator">
+                                <span class="indicator-dot fast"></span>
+                                <span>Fast Performance</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-chart" id="timeChart"></div>
+                </div>
+            </div>
 
             <!-- Scanner Controls -->
-            <div class="scanner-controls">
-                <div class="control-grid">
-                    <div class="control-group">
-                        <label>Timeframe</label>
-                        <select id="timeframe" class="form-control">
-                            <option value="1D" selected>Daily (1D)</option>
-                            <option value="1W">Weekly (1W)</option>
-                            <option value="1M">Monthly (1M)</option>
-                        </select>
-                    </div>
-
-                    <div class="control-group">
-                        <label>Min Marubozu % (Body Size)</label>
-                        <div class="input-with-unit">
-                            <input type="number" id="minBodyMove" class="form-control" value="3" min="1" max="10" step="0.5">
-                            <span class="unit">%</span>
-                        </div>
-                        <small>Minimum body size as percentage of open price</small>
-                    </div>
-
-                    <div class="control-group">
-                        <label>History Periods</label>
-                        <div class="input-with-unit">
-                            <input type="number" id="daysBack" class="form-control" value="30" min="10" max="365">
-                            <span class="unit" id="historyUnit">periods</span>
-                        </div>
-                        <small id="historyHelp">Number of periods to analyze (days/weeks/months based on timeframe)</small>
-                    </div>
-
-                    <div class="control-group">
-                        <label>Symbol Group</label>
-                        <select id="symbolGroup" class="form-control" onchange="onSymbolGroupChange()">
-                            <option value="fno">F&O Stocks (158)</option>
-                            <option value="nifty50">Nifty 50</option>
-                            <option value="custom">Custom Symbols</option>
-                        </select>
-                    </div>
+            <div class="scanner-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-sliders-h"></i>
+                        Scanner Configuration
+                    </h2>
+                    <button class="panel-toggle" onclick="togglePanel(this)">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
                 </div>
 
-                <div class="custom-symbols-section" id="customSymbolsSection" style="display:none;">
-                    <label>Custom Symbols (comma-separated)</label>
-                    <input type="text" id="customSymbols" class="form-control" placeholder="RELIANCE, TCS, INFY, HDFCBANK">
-                </div>
+                <div class="panel-body">
+                    <div class="controls-grid">
+                        <div class="control-card">
+                            <label class="control-label">
+                                <i class="fas fa-calendar-alt"></i>
+                                Timeframe
+                            </label>
+                            <select id="timeframe" class="control-select">
+                                <option value="1D" selected>Daily (1D)</option>
+                                <option value="1W">Weekly (1W)</option>
+                                <option value="1M">Monthly (1M)</option>
+                            </select>
+                            <span class="control-hint">Select analysis timeframe</span>
+                        </div>
 
-                <div class="action-buttons">
-                    <button class="btn btn-primary btn-large" onclick="startScan()" id="scanButton">
-                        <i class="fas fa-search"></i> Start Full Scan
-                    </button>
-                    <button class="btn btn-success btn-large" onclick="startTodayScan()">
-                        <i class="fas fa-calendar-day"></i> Today's Signals Only
-                    </button>
-                    <button class="btn btn-info btn-large" onclick="loadDatabasePatterns()">
-                        <i class="fas fa-database"></i> Load All Patterns (Daily/Weekly/Monthly)
-                    </button>
+                        <div class="control-card">
+                            <label class="control-label">
+                                <i class="fas fa-percentage"></i>
+                                Min Marubozu Body
+                            </label>
+                            <div class="slider-container">
+                                <input type="range" id="minBodyMoveSlider" class="control-slider"
+                                       min="1" max="10" step="0.5" value="2"
+                                       oninput="updateSliderValue('minBodyMove', this.value)">
+                                <div class="slider-value">
+                                    <input type="number" id="minBodyMove" class="control-input"
+                                           value="2" min="1" max="10" step="0.5"
+                                           oninput="updateSliderValue('minBodyMoveSlider', this.value)">
+                                    <span class="input-unit">%</span>
+                                </div>
+                            </div>
+                            <span class="control-hint">Minimum body size threshold</span>
+                        </div>
+
+                        <div class="control-card">
+                            <label class="control-label">
+                                <i class="fas fa-history"></i>
+                                History Periods
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="daysBack" class="control-input" value="30" min="10" max="365">
+                                <span class="input-addon" id="historyUnit">days</span>
+                            </div>
+                            <span class="control-hint" id="historyHelp">Number of trading days to analyze</span>
+                        </div>
+
+                        <div class="control-card">
+                            <label class="control-label">
+                                <i class="fas fa-layer-group"></i>
+                                Symbol Group
+                            </label>
+                            <select id="symbolGroup" class="control-select" onchange="onSymbolGroupChange()">
+                                <option value="fno">F&O Stocks (158)</option>
+                                <option value="nifty50">Nifty 50</option>
+                                <option value="custom">Custom Symbols</option>
+                            </select>
+                            <span class="control-hint">Select stock universe</span>
+                        </div>
+                    </div>
+
+                    <div class="custom-symbols-panel" id="customSymbolsSection" style="display:none;">
+                        <label class="control-label">
+                            <i class="fas fa-edit"></i>
+                            Custom Symbols
+                        </label>
+                        <textarea id="customSymbols" class="control-textarea"
+                                  placeholder="Enter symbols separated by commas&#10;Example: RELIANCE, TCS, INFY, HDFCBANK"
+                                  rows="3"></textarea>
+                    </div>
+
+                    <div class="action-panel">
+                        <button class="action-btn primary large" onclick="startScan()" id="scanButton">
+                            <span class="btn-icon">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <span class="btn-text">Start Full Scan</span>
+                            <span class="btn-loader" style="display:none;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </button>
+                        <button class="action-btn success large" onclick="startTodayScan()">
+                            <span class="btn-icon">
+                                <i class="fas fa-calendar-day"></i>
+                            </span>
+                            <span class="btn-text">Today's Signals</span>
+                        </button>
+                        <button class="action-btn info large" onclick="loadDatabasePatterns()">
+                            <span class="btn-icon">
+                                <i class="fas fa-database"></i>
+                            </span>
+                            <span class="btn-text">Load All Patterns</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Statistics Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-pie"></i>
+            <!-- Progress Section -->
+            <div class="progress-panel" id="progressSection" style="display:none;">
+                <div class="progress-content">
+                    <div class="progress-animation">
+                        <div class="scanner-animation">
+                            <div class="scan-line"></div>
+                            <div class="scan-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-content">
-                        <h3 id="totalScans">0</h3>
-                        <p>Total Scans</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-search-plus"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="symbolsScanned">0</h3>
-                        <p>Symbols Scanned</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-trophy"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="patternsFound">0</h3>
-                        <p>Patterns Found</p>
+                    <div class="progress-details">
+                        <h3 class="progress-title">Scanning in Progress</h3>
+                        <p class="progress-message" id="progressText">Initializing scanner...</p>
+                        <div class="progress-bar-wrapper">
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill" id="progressBar"></div>
+                            </div>
+                            <span class="progress-percentage" id="progressPercent">0%</span>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="scanTime">0s</h3>
-                        <p>Scan Time</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Progress Bar -->
-            <div class="progress-section" id="progressSection" style="display:none;">
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                <p class="progress-text" id="progressText">Scanning...</p>
             </div>
 
             <!-- Results Section -->
-            <div class="results-section">
-                <div class="results-header">
-                    <h2>Found <span id="patternCount">0</span> Patterns</h2>
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" onclick="filterResults('all')">All</button>
-                        <button class="filter-btn" onclick="filterResults('bullish')">Bullish</button>
-                        <button class="filter-btn" onclick="filterResults('bearish')">Bearish</button>
-                        <button class="filter-btn" onclick="filterResults('today')">Today Only</button>
+            <div class="results-panel">
+                <div class="panel-header">
+                    <div class="results-title">
+                        <h2>
+                            <i class="fas fa-chart-line"></i>
+                            Pattern Results
+                            <span class="results-count" id="patternCount">0</span>
+                        </h2>
+                    </div>
+                    <div class="results-filters">
+                        <div class="filter-group">
+                            <button class="filter-btn active" onclick="filterResults('all')">
+                                <i class="fas fa-th"></i> All
+                            </button>
+                            <button class="filter-btn" onclick="filterResults('bullish')">
+                                <i class="fas fa-arrow-up"></i> Bullish
+                            </button>
+                            <button class="filter-btn" onclick="filterResults('bearish')">
+                                <i class="fas fa-arrow-down"></i> Bearish
+                            </button>
+                            <button class="filter-btn" onclick="filterResults('today')">
+                                <i class="fas fa-star"></i> Today
+                            </button>
+                        </div>
+                        <div class="view-toggles">
+                            <button class="view-btn active" onclick="setView('cards')">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                            <button class="view-btn" onclick="setView('table')">
+                                <i class="fas fa-table"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="results-container" id="resultsContainer">
-                    <!-- Results will be dynamically inserted here -->
-                    <div class="no-results">
-                        <i class="fas fa-search fa-3x"></i>
-                        <h3>No patterns found yet</h3>
-                        <p>Click "Start Full Scan" to begin scanning</p>
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-chart-candlestick"></i>
+                        </div>
+                        <h3 class="empty-title">No Patterns Detected Yet</h3>
+                        <p class="empty-text">Configure your scanner settings and click "Start Full Scan" to begin pattern detection</p>
+                        <button class="action-btn primary" onclick="document.getElementById('scanButton').click()">
+                            <i class="fas fa-play"></i> Start Scanning
+                        </button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <div class="toast-content">
-            <i class="fas fa-check-circle"></i>
-            <span id="toastMessage">Operation completed</span>
+    <!-- Enhanced Toast Notifications -->
+    <div class="toast-container">
+        <div class="toast" id="toast">
+            <div class="toast-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="toast-body">
+                <h4 class="toast-title">Success</h4>
+                <p class="toast-message" id="toastMessage">Operation completed successfully</p>
+            </div>
+            <button class="toast-close" onclick="hideToast()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="toast-progress"></div>
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest/dist/apexcharts.min.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>

@@ -2,9 +2,88 @@
 let currentResults = [];
 let scanInterval = null;
 let currentFilter = 'all';
+let currentView = 'cards';
+let miniCharts = {};
 
-// ==================== Initialize ====================
-// Initialization moved to the bottom to avoid duplicates
+// ==================== Theme Management ====================
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    const icon = document.getElementById('themeIcon');
+    if (icon) {
+        icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    }
+}
+
+// ==================== Sidebar Management ====================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('open');
+}
+
+// ==================== Market Status ====================
+function updateMarketStatus() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const day = now.getDay();
+
+    const indicator = document.getElementById('marketIndicator');
+    const statusText = document.getElementById('marketStatus');
+    const timeText = document.getElementById('marketTime');
+
+    // Check if market is open (Mon-Fri, 9:15 AM - 3:30 PM IST)
+    const isWeekday = day >= 1 && day <= 5;
+    const isMarketHours = (hours === 9 && minutes >= 15) ||
+                          (hours > 9 && hours < 15) ||
+                          (hours === 15 && minutes <= 30);
+
+    if (isWeekday && isMarketHours) {
+        indicator.classList.add('open');
+        statusText.textContent = 'Market Open';
+    } else {
+        indicator.classList.remove('open');
+        statusText.textContent = 'Market Closed';
+    }
+
+    // Update time
+    timeText.textContent = now.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// ==================== Panel Management ====================
+function togglePanel(button) {
+    const panel = button.closest('.scanner-panel, .results-panel');
+    const body = panel.querySelector('.panel-body');
+    const icon = button.querySelector('i');
+
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        icon.className = 'fas fa-chevron-up';
+    } else {
+        body.style.display = 'none';
+        icon.className = 'fas fa-chevron-down';
+    }
+}
+
+// ==================== Slider Management ====================
+function updateSliderValue(targetId, value) {
+    document.getElementById(targetId).value = value;
+}
 
 // ==================== Symbol Group Management ====================
 function onSymbolGroupChange() {
@@ -24,6 +103,7 @@ async function startScan() {
     const progressSection = document.getElementById('progressSection');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
 
     // Get parameters
     const params = {
@@ -34,11 +114,16 @@ async function startScan() {
         custom_symbols: document.getElementById('customSymbols').value
     };
 
-    // Disable button and show progress
+    // Update button state
     scanButton.disabled = true;
-    scanButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+    scanButton.querySelector('.btn-text').textContent = 'Scanning...';
+    scanButton.querySelector('.btn-icon').style.display = 'none';
+    scanButton.querySelector('.btn-loader').style.display = 'inline-flex';
+
+    // Show progress
     progressSection.style.display = 'block';
     progressBar.style.width = '0%';
+    progressPercent.textContent = '0%';
     progressText.textContent = 'Initializing scan...';
 
     try {
@@ -60,11 +145,11 @@ async function startScan() {
                 // Update progress
                 const progress = status.progress || 0;
                 progressBar.style.width = `${progress}%`;
+                progressPercent.textContent = `${progress}%`;
 
-                // Enhanced progress text with loading animation
+                // Enhanced progress text
                 let message = status.message || 'Scanning...';
                 if (message.includes('Starting scan')) {
-                    // Add animated dots for initialization phase
                     const dots = '.'.repeat((Math.floor(Date.now() / 500) % 3) + 1);
                     message = message + dots;
                 }
@@ -74,18 +159,19 @@ async function startScan() {
                 if (progress === 100 || status.error) {
                     clearInterval(scanInterval);
                     scanButton.disabled = false;
-                    scanButton.innerHTML = '<i class="fas fa-search"></i> Start Full Scan';
+                    scanButton.querySelector('.btn-text').textContent = 'Start Full Scan';
+                    scanButton.querySelector('.btn-icon').style.display = 'inline-flex';
+                    scanButton.querySelector('.btn-loader').style.display = 'none';
 
                     if (status.results) {
-                        // status.results contains the full scan response with results and statistics
                         displayResults(status.results);
                         const patternCount = status.results.results ? status.results.results.length : 0;
-                        showToast(`Scan completed! Found ${patternCount} patterns`);
+                        showToast(`Scan completed! Found ${patternCount} patterns`, 'success');
                     } else if (status.error) {
                         showToast('Scan failed: ' + status.message, 'error');
                     }
 
-                    // Hide progress after 2 seconds
+                    // Hide progress after animation
                     setTimeout(() => {
                         progressSection.style.display = 'none';
                     }, 2000);
@@ -98,24 +184,22 @@ async function startScan() {
         console.error('Scan error:', error);
         showToast('Failed to start scan: ' + error.message, 'error');
         scanButton.disabled = false;
-        scanButton.innerHTML = '<i class="fas fa-search"></i> Start Full Scan';
+        scanButton.querySelector('.btn-text').textContent = 'Start Full Scan';
+        scanButton.querySelector('.btn-icon').style.display = 'inline-flex';
+        scanButton.querySelector('.btn-loader').style.display = 'none';
         progressSection.style.display = 'none';
     }
 }
 
 async function startTodayScan() {
-    const scanButton = document.getElementById('scanButton');
     const progressSection = document.getElementById('progressSection');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
 
     try {
         // Always run a fresh scan for today's signals to ensure we have latest data
-        showToast('Scanning for today\'s signals...');
-
-        // Show progress UI
-        scanButton.disabled = true;
-        scanButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning for Today\'s Signals...';
+        showToast('Scanning for today\'s signals...', 'info');
         progressSection.style.display = 'block';
         progressBar.style.width = '0%';
         progressText.textContent = 'Scanning for today\'s signals...';
@@ -157,8 +241,6 @@ async function startTodayScan() {
                 // Check if complete
                 if (progress === 100 || status.error) {
                     clearInterval(scanInterval);
-                    scanButton.disabled = false;
-                    scanButton.innerHTML = '<i class="fas fa-search"></i> Start Full Scan';
 
                     if (status.results) {
                         // Scan completed, now get today's signals
@@ -190,40 +272,82 @@ async function startTodayScan() {
     } catch (error) {
         console.error('Today\'s scan error:', error);
         showToast('Failed to scan for today\'s signals: ' + error.message, 'error');
-        scanButton.disabled = false;
-        scanButton.innerHTML = '<i class="fas fa-search"></i> Start Full Scan';
         progressSection.style.display = 'none';
     }
 }
 
 // ==================== Display Functions ====================
 function displayResults(data) {
-    // Debug: Log what we received
-    console.log('displayResults received:', data);
-
     currentResults = data.results || [];
     const statistics = data.statistics || {};
 
-    // Update statistics
-    document.getElementById('totalScans').textContent = statistics.total_symbols_requested || 0;
-    document.getElementById('symbolsScanned').textContent = statistics.symbols_scanned || 0;
-    document.getElementById('patternsFound').textContent = statistics.total_patterns_found || currentResults.length;
+    // Update statistics with animations
+    animateNumber('totalScans', statistics.total_symbols_requested || 0);
+    animateNumber('symbolsScanned', statistics.symbols_scanned || 0);
+    animateNumber('patternsFound', statistics.total_patterns_found || currentResults.length);
     document.getElementById('scanTime').textContent = `${statistics.scan_duration_seconds || 0}s`;
 
-    // Update pattern count - use actual array length
+    // Update pattern count
     document.getElementById('patternCount').textContent = currentResults.length;
+
+    // Update badges
+    updatePatternBadges(currentResults);
+
+    // Debug log
+    console.log('Display Results - Total patterns:', currentResults.length);
+
+    // Update progress bar for symbols scanned
+    const progressBar = document.querySelector('.progress-fill');
+    if (progressBar && statistics.total_symbols_requested > 0) {
+        const percentage = (statistics.symbols_scanned / statistics.total_symbols_requested) * 100;
+        progressBar.style.width = `${percentage}%`;
+    }
 
     // Display filtered results
     filterResults(currentFilter);
+
+    // Initialize mini charts
+    setTimeout(() => initializeMiniCharts(), 500);
+}
+
+function animateNumber(elementId, targetValue) {
+    const element = document.getElementById(elementId);
+    const startValue = parseInt(element.textContent) || 0;
+    const duration = 1000;
+    const startTime = Date.now();
+
+    function update() {
+        const currentTime = Date.now();
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
+        element.textContent = currentValue;
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+
+    requestAnimationFrame(update);
+}
+
+function updatePatternBadges(results) {
+    const bullishCount = results.filter(r => r.pattern_direction?.toLowerCase() === 'bullish').length;
+    const bearishCount = results.filter(r => r.pattern_direction?.toLowerCase() === 'bearish').length;
+
+    const badges = document.querySelector('.stat-badges');
+    if (badges) {
+        badges.innerHTML = `
+            <span class="mini-badge bullish">${bullishCount} Bull</span>
+            <span class="mini-badge bearish">${bearishCount} Bear</span>
+        `;
+    }
 }
 
 function filterResults(filter) {
     currentFilter = filter;
     let filtered = [...currentResults];
-
-    // Debug logging
-    console.log(`Filtering for: ${filter}`);
-    console.log(`Total patterns before filter: ${currentResults.length}`);
 
     // Apply filter (case-insensitive comparison)
     if (filter === 'bullish') {
@@ -238,7 +362,7 @@ function filterResults(filter) {
         });
     }
 
-    console.log(`Patterns after filter: ${filtered.length}`);
+    console.log(`Filtering for: ${filter}, Results: ${filtered.length}/${currentResults.length}`);
 
     // Update filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -259,17 +383,29 @@ function renderResults(results) {
 
     if (results.length === 0) {
         container.innerHTML = `
-            <div class="no-results">
-                <i class="fas fa-search fa-3x"></i>
-                <h3>No patterns found</h3>
-                <p>Try adjusting your filters or scan parameters</p>
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-chart-candlestick"></i>
+                </div>
+                <h3 class="empty-title">No Patterns Found</h3>
+                <p class="empty-text">Try adjusting your filters or scan parameters</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = results.map(result => `
-        <div class="result-card ${result.pattern_direction}">
+    if (currentView === 'table') {
+        renderTableView(results);
+    } else {
+        renderCardView(results);
+    }
+}
+
+function renderCardView(results) {
+    const container = document.getElementById('resultsContainer');
+
+    container.innerHTML = results.map((result, index) => `
+        <div class="result-card ${result.pattern_direction}" style="animation-delay: ${index * 0.05}s">
             <div class="result-header">
                 <div class="result-symbol">
                     <a href="${getTradingViewUrl(result.symbol)}"
@@ -281,10 +417,12 @@ function renderResults(results) {
                         <i class="fas fa-external-link-alt external-icon"></i>
                     </a>
                 </div>
-                <span class="direction-badge ${result.pattern_direction}">
-                    ${result.pattern_direction.toUpperCase()}
-                </span>
-                ${result.timeframe ? `<span class="timeframe-badge">${result.timeframe}</span>` : ''}
+                <div>
+                    <span class="direction-badge ${result.pattern_direction}">
+                        ${result.pattern_direction.toUpperCase()}
+                    </span>
+                    ${result.timeframe ? `<span class="timeframe-badge">${result.timeframe}</span>` : ''}
+                </div>
             </div>
             <div class="result-details">
                 <div class="detail-group">
@@ -315,6 +453,10 @@ function renderResults(results) {
                     <div class="detail-label">Close Price</div>
                     <div class="detail-value">₹${result.doji?.close?.toFixed(2) || 'N/A'}</div>
                 </div>
+                <div class="detail-group">
+                    <div class="detail-label">Volume</div>
+                    <div class="detail-value">${formatVolume(result.doji?.volume)}</div>
+                </div>
             </div>
             <div class="chart-actions">
                 <button onclick="openTradingView('${result.symbol}')" class="btn-chart">
@@ -326,6 +468,74 @@ function renderResults(results) {
             </div>
         </div>
     `).join('');
+}
+
+function renderTableView(results) {
+    const container = document.getElementById('resultsContainer');
+
+    container.innerHTML = `
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Direction</th>
+                    <th>Signal Date</th>
+                    <th>Confidence</th>
+                    <th>Close Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${results.map(result => `
+                    <tr>
+                        <td><strong>${result.symbol}</strong></td>
+                        <td>
+                            <span class="direction-badge ${result.pattern_direction}">
+                                ${result.pattern_direction.toUpperCase()}
+                            </span>
+                        </td>
+                        <td>${formatDateWithWeek(result)}</td>
+                        <td>${calculateConfidence(result)}%</td>
+                        <td>₹${result.doji?.close?.toFixed(2) || 'N/A'}</td>
+                        <td>
+                            <button onclick="openTradingView('${result.symbol}')" class="btn-chart-mini">
+                                <i class="fas fa-chart-line"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function setView(view) {
+    currentView = view;
+
+    // Update view buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.closest('.view-btn').classList.add('active');
+
+    // Re-render results
+    renderResults(currentResults.filter(r => {
+        if (currentFilter === 'all') return true;
+        if (currentFilter === 'bullish') return r.pattern_direction?.toLowerCase() === 'bullish';
+        if (currentFilter === 'bearish') return r.pattern_direction?.toLowerCase() === 'bearish';
+        if (currentFilter === 'today') {
+            const today = new Date().toISOString().split('T')[0];
+            return (r.doji?.date || '') === today;
+        }
+        return true;
+    }));
+}
+
+function formatVolume(volume) {
+    if (!volume) return 'N/A';
+    if (volume > 1000000) return `${(volume / 1000000).toFixed(2)}M`;
+    if (volume > 1000) return `${(volume / 1000).toFixed(2)}K`;
+    return volume.toString();
 }
 
 // ==================== Utility Functions ====================
@@ -425,11 +635,13 @@ async function loadStats() {
         const stats = await response.json();
 
         // Update connection status
-        const statusDot = document.querySelector('.status-dot');
-        if (stats.scanner_status === 'online') {
-            statusDot.classList.add('online');
-        } else {
-            statusDot.classList.remove('online');
+        const statusDot = document.querySelector('.connection-dot');
+        if (statusDot) {
+            if (stats.scanner_status === 'online') {
+                statusDot.classList.add('online');
+            } else {
+                statusDot.classList.remove('online');
+            }
         }
     } catch (error) {
         console.error('Failed to load stats:', error);
@@ -570,17 +782,32 @@ async function exportResults(format) {
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
-    const toastIcon = toast.querySelector('i');
+    const toastTitle = toast.querySelector('.toast-title');
+    const toastIcon = toast.querySelector('.toast-icon i');
 
     toastMessage.textContent = message;
 
-    // Update icon based on type
-    if (type === 'error') {
-        toastIcon.className = 'fas fa-exclamation-circle';
-        toastIcon.style.color = '#ef4444';
-    } else {
-        toastIcon.className = 'fas fa-check-circle';
-        toastIcon.style.color = '#10b981';
+    // Update based on type
+    switch(type) {
+        case 'error':
+            toastTitle.textContent = 'Error';
+            toastIcon.className = 'fas fa-exclamation-circle';
+            toastIcon.style.color = 'var(--danger)';
+            break;
+        case 'warning':
+            toastTitle.textContent = 'Warning';
+            toastIcon.className = 'fas fa-exclamation-triangle';
+            toastIcon.style.color = 'var(--warning)';
+            break;
+        case 'info':
+            toastTitle.textContent = 'Info';
+            toastIcon.className = 'fas fa-info-circle';
+            toastIcon.style.color = 'var(--info)';
+            break;
+        default:
+            toastTitle.textContent = 'Success';
+            toastIcon.className = 'fas fa-check-circle';
+            toastIcon.style.color = 'var(--success)';
     }
 
     // Show toast
@@ -590,6 +817,11 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
+}
+
+function hideToast() {
+    const toast = document.getElementById('toast');
+    toast.classList.remove('show');
 }
 
 // ==================== TradingView Integration ====================
@@ -643,21 +875,134 @@ function updateHistoryUnit() {
     }
 }
 
+// ==================== Mini Charts ====================
+function initializeMiniCharts() {
+    // Initialize mini sparkline charts for statistics
+    const chartOptions = {
+        chart: {
+            type: 'area',
+            height: 40,
+            sparkline: {
+                enabled: true
+            },
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800
+            }
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 2
+        },
+        fill: {
+            opacity: 0.3
+        },
+        tooltip: {
+            enabled: false
+        }
+    };
+
+    // Scans chart
+    if (document.querySelector('#scansChart') && !miniCharts.scans) {
+        miniCharts.scans = new ApexCharts(document.querySelector('#scansChart'), {
+            ...chartOptions,
+            series: [{
+                data: generateRandomData(8, 50, 100)
+            }],
+            colors: ['#667eea']
+        });
+        miniCharts.scans.render();
+    }
+
+    // Symbols chart
+    if (document.querySelector('#symbolsChart') && !miniCharts.symbols) {
+        miniCharts.symbols = new ApexCharts(document.querySelector('#symbolsChart'), {
+            ...chartOptions,
+            series: [{
+                data: generateRandomData(8, 100, 158)
+            }],
+            colors: ['#f093fb']
+        });
+        miniCharts.symbols.render();
+    }
+
+    // Patterns chart
+    if (document.querySelector('#patternsChart') && !miniCharts.patterns) {
+        miniCharts.patterns = new ApexCharts(document.querySelector('#patternsChart'), {
+            ...chartOptions,
+            series: [{
+                data: generateRandomData(8, 0, 50)
+            }],
+            colors: ['#4facfe']
+        });
+        miniCharts.patterns.render();
+    }
+
+    // Time chart
+    if (document.querySelector('#timeChart') && !miniCharts.time) {
+        miniCharts.time = new ApexCharts(document.querySelector('#timeChart'), {
+            ...chartOptions,
+            series: [{
+                data: generateRandomData(8, 5, 30)
+            }],
+            colors: ['#43e97b']
+        });
+        miniCharts.time.render();
+    }
+}
+
+function generateRandomData(count, min, max) {
+    const data = [];
+    for (let i = 0; i < count; i++) {
+        data.push(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+    return data;
+}
+
 // ==================== Initialization ====================
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize theme
+    initTheme();
+
+    // Initialize market status
+    updateMarketStatus();
+    setInterval(updateMarketStatus, 60000); // Update every minute
+
+    // Load initial data
     loadStats();
     loadScanners();
-    // checkLatestResults(); // Removed to prevent showing stale cached data
-    updateHistoryUnit(); // Set initial values
+    updateHistoryUnit();
 
-    // Add event listener for timeframe changes
+    // Add event listeners
     document.getElementById('timeframe').addEventListener('change', updateHistoryUnit);
+
+    // Initialize tooltips
+    initializeTooltips();
+
+    // Initialize notifications
+    checkNotifications();
 });
+
+function initializeTooltips() {
+    // Add tooltip functionality if needed
+}
+
+function checkNotifications() {
+    // Check for new notifications
+    const count = 0; // Would fetch from API
+    const badge = document.getElementById('notificationCount');
+    if (badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'block' : 'none';
+    }
+}
 
 // ==================== Real-time Updates ====================
 // Poll for updates every 30 seconds when idle
 setInterval(() => {
-    if (!scanInterval) {  // Only if not currently scanning
+    if (!scanInterval) {
         loadStats();
+        checkNotifications();
     }
 }, 30000);
