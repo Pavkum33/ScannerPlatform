@@ -48,15 +48,94 @@ def clear_cache():
 # Clear cache immediately on startup
 clear_cache()
 
+def ensure_database_initialized():
+    """Ensure database is properly initialized with all required tables"""
+    try:
+        import sqlite3
+        import subprocess
+
+        db_path = "database/pattern_scanner.db"
+
+        # Check if database file exists
+        if not os.path.exists(db_path):
+            logger.info("Database file not found. Initializing...")
+            return initialize_database()
+
+        # Check if required tables exist
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Check for essential tables
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='detected_patterns'")
+        has_patterns_table = cursor.fetchone() is not None
+
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='symbols'")
+        has_symbols_table = cursor.fetchone() is not None
+
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='daily_ohlc'")
+        has_daily_table = cursor.fetchone() is not None
+
+        conn.close()
+
+        if not (has_patterns_table and has_symbols_table and has_daily_table):
+            logger.info(f"Missing tables: patterns={has_patterns_table}, symbols={has_symbols_table}, daily={has_daily_table}")
+            logger.info("Initializing database...")
+            return initialize_database()
+
+        # Check if we have actual data
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM symbols")
+        symbol_count = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM detected_patterns")
+        pattern_count = cursor.fetchone()[0]
+        conn.close()
+
+        if symbol_count == 0 or pattern_count == 0:
+            logger.info(f"Database empty: {symbol_count} symbols, {pattern_count} patterns. Initializing...")
+            return initialize_database()
+
+        logger.info(f"Database OK: {symbol_count} symbols, {pattern_count} patterns")
+        return True
+
+    except Exception as e:
+        logger.error(f"Database check failed: {e}")
+        return initialize_database()
+
+def initialize_database():
+    """Initialize database using render_db_init.py"""
+    try:
+        logger.info("Starting database initialization...")
+        result = subprocess.run(
+            ['python', 'render_db_init.py'],
+            cwd='database',
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minute timeout for startup
+        )
+
+        if result.returncode == 0:
+            logger.info("Database initialization completed successfully")
+            return True
+        else:
+            logger.error(f"Database initialization failed: {result.stderr}")
+            return False
+    except Exception as e:
+        logger.error(f"Database initialization error: {e}")
+        return False
+
 # Initialize scanner components
 try:
     # Try to use SQLite scanner first (fast!)
     from scanner.sqlite_scanner_engine import SQLiteScannerEngine
     from database.sqlite_db_manager import SQLiteDBManager
 
-    # Check if database exists
+    # Ensure database is properly initialized
+    db_initialized = ensure_database_initialized()
+
+    # Check if database exists and is properly initialized
     import os
-    if os.path.exists("database/pattern_scanner.db"):
+    if db_initialized and os.path.exists("database/pattern_scanner.db"):
         scanner_engine = SQLiteScannerEngine("database/pattern_scanner.db")
         logger.info("SQLite Scanner Engine initialized (100x faster!)")
 
