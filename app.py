@@ -111,7 +111,7 @@ def initialize_database():
             cwd='database',
             capture_output=True,
             text=True,
-            timeout=300  # 5 minute timeout for startup
+            timeout=1800  # 30 minute timeout for startup
         )
 
         if result.returncode == 0:
