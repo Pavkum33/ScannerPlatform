@@ -52,7 +52,6 @@ def ensure_database_initialized():
     """Ensure database is properly initialized with all required tables"""
     try:
         import sqlite3
-        import subprocess
 
         db_path = "database/pattern_scanner.db"
 
@@ -105,6 +104,7 @@ def ensure_database_initialized():
 def initialize_database():
     """Initialize database using render_db_init.py"""
     try:
+        import subprocess
         logger.info("Starting database initialization...")
         result = subprocess.run(
             ['python', 'render_db_init.py'],
